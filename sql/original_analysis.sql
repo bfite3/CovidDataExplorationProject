@@ -1,3 +1,24 @@
+/*
+Project: COVID-19 Global Data Analysis
+Script: original_analysis.sql
+
+Purpose:
+Preserve the original exploratory SQL analysis before
+the portfolio rebuild and subsequent improvements.
+
+Analysis:
+- Country-level COVID-19 cases and deaths
+- Global case and death aggregates
+- Vaccination trends and rolling totals
+- Exploratory use of CTEs, temporary tables, and views
+
+Notes:
+- Archived for comparison with the refactored analysis.
+- Queries have not been updated to use the cleaned data.
+- The database name and some query logic may differ
+  from the current project.
+*/
+
 USE CovidPorfolioProject
 go
 
