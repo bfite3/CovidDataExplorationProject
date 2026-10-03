@@ -65,8 +65,24 @@ Provide country-level case, death, and vaccination
 metrics for historical Tableau visualizations.
 */
 
+/*
+View 2: Combined Country-Level Daily COVID Metrics
+
+Provide historical case, mortality, and vaccination
+metrics with each country's latest available case
+and death reporting dates.
+*/
+
 CREATE OR ALTER VIEW dbo.vw_CovidCountryDaily
 AS
+
+WITH cteLatestDeathDate AS (
+    SELECT cd.iso_code
+    ,MAX(cd.[date]) AS latest_deaths_date
+    FROM dbo.CovidDeaths cd
+    WHERE cd.total_deaths IS NOT NULL
+    GROUP BY cd.iso_code
+)
 
 SELECT cd.iso_code
 ,cd.continent
@@ -77,6 +93,7 @@ SELECT cd.iso_code
 ,cd.total_cases
 ,cd.new_deaths
 ,cd.total_deaths
+,cte_ld.latest_deaths_date
 ,cv.new_vaccinations
 ,cv.total_vaccinations
 ,CAST(
@@ -100,11 +117,12 @@ LEFT JOIN dbo.CovidVaccinations cv
 ON cd.iso_code = cv.iso_code
 AND cd.location = cv.location
 AND cd.[date] = cv.[date]
+LEFT JOIN cteLatestDeathDate cte_ld
+ON cd.iso_code = cte_ld.iso_code
 WHERE cd.continent IS NOT NULL
 AND cd.population > 0
 ;
 GO
-
 
 /*
 View 3: Latest Country-Level COVID Metrics

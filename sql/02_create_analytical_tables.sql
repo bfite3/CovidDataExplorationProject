@@ -1,6 +1,6 @@
 /*
 Project: COVID-19 Global Data Analysis
-Script: 01_create_analytical_tables.sql
+Script: 02_create_analytical_tables.sql
 
 Purpose:
 Create separate analytical tables containing COVID-19
