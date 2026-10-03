@@ -100,10 +100,6 @@ SELECT cd.iso_code
     (cd.total_deaths / NULLIF(cd.population, 0)) * 100
     AS DECIMAL(18, 4)
 ) AS reported_deaths_pct_population
-,CAST(
-    (cv.total_vaccinations / NULLIF(cd.population, 0)) * 100
-    AS DECIMAL(18, 4)
-) AS reported_doses_per_100
 FROM dbo.CovidDeaths cd
 LEFT JOIN dbo.CovidVaccinations cv
 ON cd.iso_code = cv.iso_code

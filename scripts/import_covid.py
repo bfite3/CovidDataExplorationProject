@@ -1,14 +1,13 @@
 
 from pathlib import Path
 import pandas as pd
-import pyodbc
+from db_connection import get_connection
 
 # Configuration
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "data" / "owid-covid-data.csv"
 
-SERVER = r"DESKTOP-KP36Q46\SQLEXPRESS"
-DATABASE = "CovidPortfolioProject"
+
 CHUNK_SIZE = 1000
 
 # Only import columns needed for our initial analysis.
@@ -26,33 +25,7 @@ NUMERIC_COLUMNS = [
 
 COLUMNS = TEXT_COLUMNS + [DATE_COLUMN] + NUMERIC_COLUMNS
 
-# Find an installed SQL Server ODBC driver.
-drivers = pyodbc.drivers()
-driver = next(
-    (d for d in [
-        "ODBC Driver 18 for SQL Server",
-        "ODBC Driver 17 for SQL Server",
-    ] if d in drivers),
-    None
-)
-
-if not driver:
-    raise RuntimeError(
-        "Install Microsoft ODBC Driver 18 or 17 for SQL Server."
-    )
-
-if not CSV_PATH.exists():
-    raise FileNotFoundError(f"CSV not found: {CSV_PATH}")
-
-connection_string = (
-    f"DRIVER={{{driver}}};"
-    f"SERVER={SERVER};"
-    f"DATABASE={DATABASE};"
-    "Trusted_Connection=yes;"
-    "TrustServerCertificate=yes;"
-)
-
-connection = pyodbc.connect(connection_string)
+connection = get_connection()
 cursor = connection.cursor()
 
 # Rebuild the staging table.
