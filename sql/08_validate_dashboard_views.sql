@@ -51,6 +51,7 @@ SELECT vcl.iso_code
 FROM dbo.vw_CovidCountryLatest vcl
 GROUP BY vcl.iso_code
 HAVING COUNT(*) > 1
+;
 
 
 /*

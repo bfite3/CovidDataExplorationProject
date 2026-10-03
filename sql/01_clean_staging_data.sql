@@ -1,3 +1,31 @@
+/*
+Project: COVID-19 Global Data Analysis
+Script: 01_clean_staging_data.sql
+
+Purpose:
+Clean imported COVID-19 records and create a staging
+dataset suitable for downstream analytical processing.
+
+Source:
+staging.CovidRaw
+
+Output:
+staging.CovidClean
+
+Methodology:
+- Group records by ISO code, location, and date.
+- Merge complementary duplicate records using MAX().
+- Preserve NULL values when measurements are unavailable.
+- Retain the original imported data without modification.
+
+Notes:
+- Duplicate groups were checked for conflicting
+  non-NULL numeric values before this transformation.
+- Assumes duplicate records do not contain conflicting
+  non-NULL continent values.
+- Existing cleaned staging data is replaced on execution.
+*/
+
 USE CovidPortfolioProject;
 GO
 

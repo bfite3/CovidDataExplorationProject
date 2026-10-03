@@ -57,14 +57,6 @@ AND cd.population > 0
 ;
 GO
 
-
-/*
-View 2: Combined Country-Level Daily COVID Metrics
-
-Provide country-level case, death, and vaccination
-metrics for historical Tableau visualizations.
-*/
-
 /*
 View 2: Combined Country-Level Daily COVID Metrics
 
