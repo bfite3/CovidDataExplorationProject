@@ -139,3 +139,6 @@ def main():
     finally:
         cursor.close()
         connection.close()
+
+if __name__ =="__main__":
+    main()
