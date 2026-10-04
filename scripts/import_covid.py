@@ -25,116 +25,117 @@ NUMERIC_COLUMNS = [
 
 COLUMNS = TEXT_COLUMNS + [DATE_COLUMN] + NUMERIC_COLUMNS
 
-connection = get_connection()
-cursor = connection.cursor()
+def main():
+    connection = get_connection()
+    cursor = connection.cursor()
 
-# Rebuild the staging table.
-# WARNING: This removes any existing staging.CovidRaw data.
-cursor.execute("""
-IF OBJECT_ID('staging.CovidRaw', 'U') IS NOT NULL
-    DROP TABLE staging.CovidRaw;
+    # Rebuild the staging table.
+    # WARNING: This removes any existing staging.CovidRaw data.
+    cursor.execute("""
+    IF OBJECT_ID('staging.CovidRaw', 'U') IS NOT NULL
+        DROP TABLE staging.CovidRaw;
+    
+    CREATE TABLE staging.CovidRaw (
+        iso_code NVARCHAR(20) NULL,
+        continent NVARCHAR(100) NULL,
+        location NVARCHAR(200) NOT NULL,
+        [date] DATE NOT NULL,
+        population FLOAT NULL,
+        total_cases FLOAT NULL,
+        new_cases FLOAT NULL,
+        total_deaths FLOAT NULL,
+        new_deaths FLOAT NULL,
+        new_vaccinations FLOAT NULL,
+        total_vaccinations FLOAT NULL
+    );
+    """)
+    connection.commit()
 
-CREATE TABLE staging.CovidRaw (
-    iso_code NVARCHAR(20) NULL,
-    continent NVARCHAR(100) NULL,
-    location NVARCHAR(200) NOT NULL,
-    [date] DATE NOT NULL,
-    population FLOAT NULL,
-    total_cases FLOAT NULL,
-    new_cases FLOAT NULL,
-    total_deaths FLOAT NULL,
-    new_deaths FLOAT NULL,
-    new_vaccinations FLOAT NULL,
-    total_vaccinations FLOAT NULL
-);
-""")
-connection.commit()
+    column_names = ", ".join(
+        f"[{column}]" for column in COLUMNS
+    )
+    placeholders = ", ".join("?" for _ in COLUMNS)
 
-column_names = ", ".join(
-    f"[{column}]" for column in COLUMNS
-)
-placeholders = ", ".join("?" for _ in COLUMNS)
-
-insert_sql = (
-    f"INSERT INTO staging.CovidRaw ({column_names}) "
-    f"VALUES ({placeholders})"
-)
-
-cursor.fast_executemany = True
-total_rows = 0
-
-try:
-    reader = pd.read_csv(
-        CSV_PATH,
-        usecols=COLUMNS,
-        dtype=str,
-        chunksize=CHUNK_SIZE,
-        keep_default_na=True,
-        low_memory=False,
+    insert_sql = (
+        f"INSERT INTO staging.CovidRaw ({column_names}) "
+        f"VALUES ({placeholders})"
     )
 
-    for chunk in reader:
-        # Validate dates.
-        chunk[DATE_COLUMN] = pd.to_datetime(
-            chunk[DATE_COLUMN],
-            errors="raise"
-        ).dt.date
+    cursor.fast_executemany = True
+    total_rows = 0
 
-        # Validate numeric fields without silently
-        # converting unexpected text into NULL.
-        for column in NUMERIC_COLUMNS:
-            original = chunk[column]
-            converted = pd.to_numeric(
-                original, errors="coerce"
-            )
+    try:
+        reader = pd.read_csv(
+            CSV_PATH,
+            usecols=COLUMNS,
+            dtype=str,
+            chunksize=CHUNK_SIZE,
+            keep_default_na=True,
+            low_memory=False,
+        )
 
-            invalid = (
-                original.notna() & converted.isna()
-            )
+        for chunk in reader:
+            # Validate dates.
+            chunk[DATE_COLUMN] = pd.to_datetime(
+                chunk[DATE_COLUMN],
+                errors="raise"
+            ).dt.date
 
-            if invalid.any():
-                raise ValueError(
-                    f"Invalid numeric data in {column}: "
-                    f"{original[invalid].head().tolist()}"
+            # Validate numeric fields without silently
+            # converting unexpected text into NULL.
+            for column in NUMERIC_COLUMNS:
+                original = chunk[column]
+                converted = pd.to_numeric(
+                    original, errors="coerce"
                 )
 
-            chunk[column] = converted
+                invalid = (
+                    original.notna() & converted.isna()
+                )
 
-        if chunk["location"].isna().any():
-            raise ValueError("Missing location detected.")
+                if invalid.any():
+                    raise ValueError(
+                        f"Invalid numeric data in {column}: "
+                        f"{original[invalid].head().tolist()}"
+                    )
 
-        if chunk["date"].isna().any():
-            raise ValueError("Missing date detected.")
+                chunk[column] = converted
 
-        # Convert pandas missing values into SQL NULL.
-        chunk = chunk.astype(object).where(
-            pd.notna(chunk), None
-        )
+            if chunk["location"].isna().any():
+                raise ValueError("Missing location detected.")
 
-        # Match the INSERT statement's column order.
-        rows = list(
-            chunk[COLUMNS].itertuples(
-                index=False, name=None
+            if chunk["date"].isna().any():
+                raise ValueError("Missing date detected.")
+
+            # Convert pandas missing values into SQL NULL.
+            chunk = chunk.astype(object).where(
+                pd.notna(chunk), None
             )
-        )
 
-        cursor.executemany(insert_sql, rows)
-        connection.commit()
+            # Match the INSERT statement's column order.
+            rows = list(
+                chunk[COLUMNS].itertuples(
+                    index=False, name=None
+                )
+            )
 
-        total_rows += len(rows)
-        print(f"Imported {total_rows:,} rows")
+            cursor.executemany(insert_sql, rows)
+            connection.commit()
 
-    cursor.execute("""
-        SELECT
-            COUNT(*) AS total_rows,
-            MIN([date]) AS earliest_date,
-            MAX([date]) AS latest_date
-        FROM staging.CovidRaw;
-    """)
+            total_rows += len(rows)
+            print(f"Imported {total_rows:,} rows")
 
-    print("\nImport complete.")
-    print("SQL Server validation:", cursor.fetchone())
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total_rows,
+                MIN([date]) AS earliest_date,
+                MAX([date]) AS latest_date
+            FROM staging.CovidRaw;
+        """)
 
-finally:
-    cursor.close()
-    connection.close()
+        print("\nImport complete.")
+        print("SQL Server validation:", cursor.fetchone())
+
+    finally:
+        cursor.close()
+        connection.close()
