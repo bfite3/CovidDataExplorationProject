@@ -38,9 +38,6 @@ GO
 
 SELECT DB_NAME() AS CurrentDatabase;
 
-USE CovidPortfolioProject;
-GO
-
 IF NOT EXISTS (
     SELECT 1
     FROM sys.schemas

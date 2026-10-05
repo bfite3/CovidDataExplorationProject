@@ -1,7 +1,9 @@
 .env
 /data
+.venv/
 *.bak
 *.log
+*.pyc
 .vscode/
 __pycache__/
 .idea/
