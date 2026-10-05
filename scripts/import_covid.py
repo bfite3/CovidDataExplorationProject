@@ -25,7 +25,8 @@ NUMERIC_COLUMNS = [
 
 COLUMNS = TEXT_COLUMNS + [DATE_COLUMN] + NUMERIC_COLUMNS
 
-def main():
+
+def main() -> None:
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -139,6 +140,7 @@ def main():
     finally:
         cursor.close()
         connection.close()
+
 
 if __name__ == "__main__":
     main()

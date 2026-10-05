@@ -8,8 +8,11 @@ Modes:
 """
 
 import argparse
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from time import perf_counter
+
+import pyodbc
 
 from db_connection import get_connection
 from download_covid import main as download_covid
@@ -34,7 +37,7 @@ DASHBOARD_SCRIPTS = [
 ]
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     """Parse pipeline execution options."""
 
     parser = argparse.ArgumentParser(
@@ -60,7 +63,10 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def run_stage(name, action):
+def run_stage(
+    name: str,
+    action: Callable[[], None],
+) -> None:
     """Execute a pipeline stage and report its duration."""
 
     print(f"\nSTART: {name}")
@@ -78,7 +84,10 @@ def run_stage(name, action):
     print(f"PASS: {name} ({elapsed:.2f} seconds)")
 
 
-def run_sql_scripts(connection, filenames):
+def run_sql_scripts(
+    connection: pyodbc.Connection,
+    filenames: Sequence[str],
+) -> None:
     """Execute SQL files sequentially using one connection."""
 
     for filename in filenames:
@@ -91,7 +100,7 @@ def run_sql_scripts(connection, filenames):
         )
 
 
-def run_validation():
+def run_validation() -> None:
     """Run read-only pipeline validation."""
 
     print("Starting COVID-19 pipeline validation...")
@@ -110,7 +119,7 @@ def run_validation():
     print("\nAll pipeline validation stages passed.")
 
 
-def initialize_database():
+def initialize_database() -> None:
     """
     Initialize the project database and staging schema.
 
@@ -133,7 +142,7 @@ def initialize_database():
         connection.close()
 
 
-def run_full_pipeline():
+def run_full_pipeline() -> None:
     """Execute the complete rebuild and validation pipeline."""
 
     print("Starting full COVID-19 pipeline...")
@@ -204,7 +213,7 @@ def run_full_pipeline():
     )
 
 
-def main():
+def main() -> None:
     """Run the requested pipeline mode."""
 
     args = parse_arguments()

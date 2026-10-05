@@ -12,7 +12,7 @@ from sql_runner import execute_sql_file
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main():
+def main() -> None:
     with get_connection() as connection:
         execute_sql_file(
             connection,

@@ -37,7 +37,9 @@ REQUIRED_COLUMNS = {
 }
 
 
-def calculate_sha256(file_path):
+def calculate_sha256(
+    file_path: Path,
+) -> str:
     sha256 = hashlib.sha256()
 
     with file_path.open("rb") as file:
@@ -47,7 +49,7 @@ def calculate_sha256(file_path):
     return sha256.hexdigest()
 
 
-def main():
+def main() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     print("Downloading historical COVID-19 dataset...")

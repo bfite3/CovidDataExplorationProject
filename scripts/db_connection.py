@@ -8,7 +8,10 @@ import os
 import pyodbc
 
 
-def get_connection(database="CovidPortfolioProject", autocommit=False):
+def get_connection(
+    database: str = "CovidPortfolioProject",
+    autocommit: bool = False,
+) -> pyodbc.Connection:
     """
     Create a SQL Server connection using
     environment-based configuration.

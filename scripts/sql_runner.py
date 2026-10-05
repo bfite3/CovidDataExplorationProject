@@ -8,8 +8,13 @@ batch separators.
 from pathlib import Path
 import re
 
+import pyodbc
 
-def execute_sql_file(connection, file_path):
+
+def execute_sql_file(
+    connection: pyodbc.Connection,
+    file_path: str | Path,
+) -> None:
     """
     Read a SQL file, split it into batches,
     and execute each batch sequentially.
